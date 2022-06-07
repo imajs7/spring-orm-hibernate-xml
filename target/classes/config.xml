@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans	xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:p="http://www.springframework.org/schema/p"
+		xmlns:tx="http://www.springframework.org/schema/tx"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+							http://www.springframework.org/schema/beans/spring-beans.xsd
+							http://www.springframework.org/schema/context
+							http://www.springframework.org/schema/context/spring-context.xsd
+							http://www.springframework.org/schema/tx
+							http://www.springframework.org/schema/tx/spring-tx.xsd">
+						
+		<tx:annotation-driven/>
+		
+		<!-- Creating Data Source to be Injected in Factory -->			
+		<bean name="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+			<property name="driverClassName" value="com.mysql.cj.jdbc.Driver" />
+			<property name="url" value="jdbc:mysql://localhost:3306/springorm?createDatabaseIfNotExist=true" />
+			<property name="username" value="root" />
+			<property name="password" value="12345678" />
+		</bean>				
+		
+		<!-- Creating SessionFactory to be Injected in HibernateTemplate -->
+		<bean name="factory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		
+			<!-- First Requirement -->
+			<property name="dataSource" ref="dataSource" />
+			
+			<!-- Second Requirement -->
+			<property name="hibernateProperties">
+				<props>
+					<prop key="hibernate.dialect">org.hibernate.dialect.MySQL55Dialect</prop>
+					<prop key="hibernate.show_sql">true</prop>
+					<prop key="hibernate.format_sql">true</prop>
+					<prop key="hibernate.hbm2ddl.auto">update</prop>
+				</props>
+			</property>
+			
+			<!-- Third Requirement -->
+			<property name="annotatedClasses">
+				<list>
+					<value>com.springorm.model.Student</value>
+				</list>
+			</property>
+			
+		</bean>
+			
+		<!-- Creating Hibernate Template to be injected in Entity Dao -->			
+		<bean name="hibernateTemplate" class="org.springframework.orm.hibernate5.HibernateTemplate">
+			<property name="sessionFactory" ref="factory" />
+		</bean>	
+							
+		<bean name="studentDao" class="com.springorm.dao.StudentDao">
+			<property name="hTemplate" ref="hibernateTemplate" />
+		</bean>
+		
+		<bean name="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+			<property name="sessionFactory" ref="factory" />
+		</bean>
+				
+</beans>
